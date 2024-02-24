@@ -9,15 +9,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'author',
         'title',
-        'tags',
-    )
-    list_editable = (
-        'title',
     )
     search_fields = (
         'author',
         'title',
-        'tags',
     )
     list_filter = (
         'author',
@@ -30,20 +25,14 @@ class IngredientAdmin(admin.ModelAdmin):
     """Отображение модели Ingredient в админ панели сайта."""
 
     list_display = ('name',)
-    list_editable = ('name',)
     search_fields = ('name',)
     list_filter = ('unit',)
 
 
 class TagAdmin(admin.ModelAdmin):
-    """Отображение модели TagRecipe в админ панели сайта."""
+    """Отображение модели Tag в админ панели сайта."""
 
     list_display = (
-        'name',
-        'color',
-        'slug',
-    )
-    list_editable = (
         'name',
         'color',
         'slug',

@@ -10,8 +10,8 @@ class UserAdmin(admin.ModelAdmin):
         'username',
         'first_name',
         'last_name',
-        'role',
         'is_superuser',
+        'role',
     )
     list_editable = (
         'role',
