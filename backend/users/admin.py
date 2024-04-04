@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import User
+from .models import User, Subscribers
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -8,16 +8,20 @@ class UserAdmin(admin.ModelAdmin):
 
     list_display = (
         'username',
-        'first_name',
-        'last_name',
         'is_superuser',
-        'role',
+        'is_staff'
     )
     list_editable = (
-        'role',
+        'is_staff',
     )
-    search_fields = ('username',)
-    list_filter = ('role', 'is_superuser')
+    search_fields = ('username', 'email',)
+    list_filter = ('is_superuser', 'is_staff', 'email', 'username',)
 
 
+class SubscribersAdmin(admin.ModelAdmin):
+
+    list_display = ('user', 'author')
+
+
+admin.site.register(Subscribers, SubscribersAdmin)
 admin.site.register(User, UserAdmin)

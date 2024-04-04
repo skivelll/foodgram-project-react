@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import Recipe, Ingredient, Tag
+from .models import Recipe, Ingredient, Tag, RecipeIngredient, RecipeTag, ShoppingCart, Favorite
+from .forms import TagForm
+
+
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+
+
+class RecipeTagInline(admin.TabularInline):
+    model = RecipeTag
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -8,25 +17,27 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = (
         'author',
-        'title',
+        'name',
     )
     search_fields = (
         'author',
-        'title',
+        'name',
     )
     list_filter = (
         'author',
-        'title',
+        'name',
         'tags',
     )
+
+    inlines = [RecipeIngredientInline, RecipeTagInline]
 
 
 class IngredientAdmin(admin.ModelAdmin):
     """Отображение модели Ingredient в админ панели сайта."""
 
-    list_display = ('name',)
+    list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
-    list_filter = ('unit',)
+    list_filter = ('measurement_unit', 'name')
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -42,8 +53,20 @@ class TagAdmin(admin.ModelAdmin):
         'color',
         'slug',
     )
+    form = TagForm
 
 
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')
+
+
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')
+
+
+admin.site.register(Favorite, FavoriteAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
