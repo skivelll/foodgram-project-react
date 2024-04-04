@@ -1,4 +1,4 @@
-m   asgiref==3.7.2
+asgiref==3.7.2
 attrs==23.2.0
 certifi==2024.2.2
 cffi==1.16.0
@@ -8,13 +8,16 @@ coreschema==0.0.4
 cryptography==42.0.5
 defusedxml==0.8.0rc2
 Django==3.2.3
+django-filter==23.5
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.8.0
 djoser==2.1.0
 flake8==7.0.0
+fpdf==1.7.2
 gunicorn==20.1.0
 idna==3.6
+inflection==0.5.1
 iniconfig==2.0.0
 isort==5.13.2
 itypes==1.2.0
