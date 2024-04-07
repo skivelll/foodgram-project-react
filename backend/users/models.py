@@ -34,4 +34,6 @@ class Subscribers(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Подписчик'
+        verbose_name_plural = 'Подписчики'
         unique_together = [['user', 'author']]
