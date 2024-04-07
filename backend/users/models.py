@@ -1,20 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-USER_ROLES = (
-    ('user', 'Пользователь'),
-    ('admin', 'Администратор'),
-)
-
-LENGTH: int = 64
+LENGTH: int = 150
 
 
 class User(AbstractUser):
     """Модель пользователя."""
 
     username = models.CharField('Логин', max_length=LENGTH, unique=True)
-    password = models.CharField('Пароль', max_length=LENGTH, blank=True)
-    email = models.EmailField('Почта', unique=True)
+    email = models.EmailField('Почта', unique=True, max_length=254)
     first_name = models.CharField('Имя', max_length=LENGTH)
     last_name = models.CharField('Фамилия', max_length=LENGTH)
 
@@ -23,7 +17,7 @@ class User(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    def __str__(self) -> models.CharField:
+    def __str__(self):
         return self.username
 
 

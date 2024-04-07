@@ -1,21 +1,23 @@
 from django_filters import rest_framework as filters
-from django_filters.fields import MultipleChoiceField
 
-from recipes.models import Recipe
-
-
-class MultipleCharField(MultipleChoiceField):
-    def validate(self, _):
-        pass
+from recipes.models import Recipe, Tag, Ingredient
 
 
-class MultipleCharFilter(filters.MultipleChoiceFilter):
-    field_class = MultipleCharField
+class IngredientFilter(filters.FilterSet):
+    name = filters.CharFilter(lookup_expr='startswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ['name']
 
 
 class RecipeFilter(filters.FilterSet):
     author = filters.NumberFilter(field_name='author__id')
-    tags = MultipleCharFilter(field_name='tags__slug', lookup_expr='contains')
+    tags = filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
+    )
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
         method='filter_in_shopping_cart'

@@ -19,7 +19,7 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from users.models import Subscribers, User
 
 from .filters import RecipeFilter
-from .pagination import DefaultPagination
+from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrReadOnly
 from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeCreateSerializer,
@@ -35,7 +35,7 @@ class CustomUserViewSet(UserViewSet):
     """
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = DefaultPagination
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_permissions(self):
@@ -96,7 +96,7 @@ class CustomUserViewSet(UserViewSet):
         methods=['GET']
     )
     def subscriptions(self, request):
-        paginator = DefaultPagination()
+        paginator = CustomPagination()
         limit = int(request.GET.get('recipes_limit', 10))
         user = request.user
         authors = [
@@ -144,7 +144,7 @@ class RecipesViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthorOrAdminOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
-    pagination_class = DefaultPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
 
