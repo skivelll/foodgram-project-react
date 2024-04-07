@@ -43,6 +43,7 @@ class IsAuthorOrAdmin(BasePermission):
             return obj.author == request.user or request.user.is_staff
         return None
 
+
 class IsAuthorOrAdminOrReadOnly(BasePermission):
     """
     Permission с правом доступа только если это безопасный запрос,
