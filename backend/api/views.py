@@ -50,7 +50,7 @@ class CustomUserViewSet(UserViewSet):
     def subscribe(self, request, id):
         if request.method == 'POST':
             return self.create_subscription(request, id)
-        elif request.method == 'DELETE':
+        else:
             return self.delete_subscription(request, id)
 
     def create_subscription(self, request, id):
@@ -160,7 +160,7 @@ class RecipesViewSet(ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
             return self.create_shopping_cart(request, pk)
-        elif request.method == 'DELETE':
+        else:
             return self.delete_shopping_cart(request, pk)
 
     def create_shopping_cart(self, request, recipe_id):
@@ -217,7 +217,7 @@ class RecipesViewSet(ModelViewSet):
     def favorite(self, request, pk):
         if request.method == 'POST':
             return self.create_favorite(request, pk)
-        elif request.method == 'DELETE':
+        else:
             return self.delete_favorite(request, pk)
 
     def create_favorite(self, request, recipe_id=None):

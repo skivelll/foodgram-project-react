@@ -57,7 +57,6 @@ class TagAdmin(admin.ModelAdmin):
     form = TagForm
 
 
-
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
 

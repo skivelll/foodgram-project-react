@@ -75,8 +75,7 @@ class SubscriptionSerializer(CustomUserSerializer):
         recipes = obj.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serialized_recipes = RecipeCompactSerializer(recipes, many=True).data
-        return serialized_recipes
+        return RecipeCompactSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
@@ -319,8 +318,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        serialized_data = RecipeSerializer(instance, context=self.context).data
-        return serialized_data
+        return RecipeSerializer(instance, context=self.context).data
 
 
 class RecipeCompactSerializer(serializers.ModelSerializer):
