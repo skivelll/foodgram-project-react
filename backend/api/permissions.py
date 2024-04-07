@@ -21,6 +21,7 @@ class IsAuthor(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
             return obj.user == request.user
+        return None
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -40,7 +41,7 @@ class IsAuthorOrAdmin(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
             return obj.author == request.user or request.user.is_staff
-
+        return None
 
 class IsAuthorOrAdminOrReadOnly(BasePermission):
     """
@@ -53,6 +54,7 @@ class IsAuthorOrAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if (request.method in SAFE_METHODS) or request.user.is_authenticated:
             return True
+        return None
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:

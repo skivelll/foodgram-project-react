@@ -28,14 +28,12 @@ class RecipeFilter(filters.FilterSet):
     def filter_is_favorited(self, queryset, name, value):
         if value:
             return queryset.filter(favorite__user=self.request.user.id)
-        else:
-            return queryset.filter(favorite__user__date=self.request.user.id)
+        return queryset.filter(favorite__user__date=self.request.user.id)
 
     def filter_in_shopping_cart(self, queryset, name, value):
         if value:
             return queryset.filter(shoppingcart__user=self.request.user.id)
-        else:
-            return queryset.filter(shoppingcart__date=self.request.user.id)
+        return queryset.filter(shoppingcart__date=self.request.user.id)
 
     class Meta:
         model = Recipe
