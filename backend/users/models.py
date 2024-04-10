@@ -6,7 +6,12 @@ LENGTH: int = 150
 
 class User(AbstractUser):
     """Модель пользователя."""
-
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+    ]
     username = models.CharField('Логин', max_length=LENGTH, unique=True)
     email = models.EmailField('Почта', unique=True, max_length=254)
     first_name = models.CharField('Имя', max_length=LENGTH)
