@@ -5,19 +5,19 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from fpdf import FPDF
-from rest_framework.generics import get_object_or_404
-
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import Subscribers, User
 
 from .filters import IngredientFilter, RecipeFilter
@@ -108,13 +108,12 @@ class CustomUserViewSet(UserViewSet):
                                                     'limit': limit
                                                 })
             return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = SubscriptionSerializer(authors, many=True,
-                                                context={
-                                                    'request': request,
-                                                    'limit': limit
-                                                })
-            return Response(serializer.data, status=HTTP_200_OK)
+        serializer = SubscriptionSerializer(authors, many=True,
+                                            context={
+                                                'request': request,
+                                                'limit': limit
+                                            })
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 class ViewSet(ReadOnlyModelViewSet):
