@@ -3,9 +3,10 @@ import re
 
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            RecipeTag, ShoppingCart, Tag)
+                            ShoppingCart, Tag)
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 from users.models import Subscribers, User
@@ -38,6 +39,8 @@ class CustomUserSerializer(UserSerializer):
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
 
     class Meta(UserCreateSerializer.Meta):
         model = User
@@ -50,12 +53,10 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             'password'
         ]
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if not re.match(r'^[\w.@+-]+\Z', username):
-            raise ValidationError('Bad Request')
-        return attrs
-
+    def validate_username(self, value):
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise serializers.ValidationError('Bad Request | field "username"')
+        return value
 
 ###########################################################
 
@@ -115,24 +116,13 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name', 'color', 'slug']
-
-
-class RecipeTagSerializer(serializers.ModelSerializer):
-    tag = TagSerializer()
-
-    class Meta:
-        model = RecipeTag
-        fields = ['tag']
-
-
-###########################################################
+        fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ['id', 'name', 'measurement_unit']
+        fields = '__all__'
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -206,19 +196,18 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         ]
 
-    def get_is_favorited(self, obj):
+    def check_user_item(self, obj, model):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             user = request.user
-            return Favorite.objects.filter(user=user, recipe=obj).exists()
+            return model.objects.filter(user=user, recipe=obj).exists()
         return False
 
+    def get_is_favorited(self, obj):
+        return self.check_user_item(obj, Favorite)
+
     def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            user = request.user
-            return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
-        return False
+        return self.check_user_item(obj, ShoppingCart)
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -271,6 +260,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
@@ -291,6 +281,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
         ingredients_data = validated_data.pop('ingredients', None)
@@ -344,7 +335,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ['id', 'user', 'recipe']
+        fields = '__all__'
 
 
 ###########################################################
@@ -354,4 +345,4 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = ['id', 'user', 'recipe']
+        fields = '__all__'

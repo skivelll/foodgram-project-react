@@ -1,9 +1,12 @@
 import tempfile
 
+from django.db import transaction
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from fpdf import FPDF
+from rest_framework.generics import get_object_or_404
+
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from rest_framework import status
@@ -52,17 +55,15 @@ class CustomUserViewSet(UserViewSet):
             return self.create_subscription(request, id)
         return self.delete_subscription(request, id)
 
+    @transaction.atomic
     def create_subscription(self, request, id):
 
-        author_exists = User.objects.filter(id=id).exists()
-        if not author_exists:
-            raise NotFound({'author': 'Автор не найден.'})
+        get_object_or_404(User, id=id)
 
-        user = request.user
         limit = request.GET.get('recipes_limit')
         serializer = SubscriptionCreateSerializer(
             data={
-                'user': user.id,
+                'user': request.user.id,
                 'author': id
             },
             context={'request': request, 'limit': limit}
@@ -96,24 +97,24 @@ class CustomUserViewSet(UserViewSet):
     def subscriptions(self, request):
         paginator = CustomPagination()
         limit = int(request.GET.get('recipes_limit', 10))
-        user = request.user
-        authors = [
-            author.author for author in Subscribers.objects.filter(user=user)
-        ]
-
+        authors = User.objects.filter(subscribers__user=request.user)
         paginator.page_size = limit
         page = paginator.paginate_queryset(authors, request)
 
-        serializer = SubscriptionSerializer(
-            page,
-            many=True,
-            context={'request': request, 'limit': limit}
-        )
-
         if page is not None:
+            serializer = SubscriptionSerializer(page, many=True,
+                                                context={
+                                                    'request': request,
+                                                    'limit': limit
+                                                })
             return paginator.get_paginated_response(serializer.data)
-
-        return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            serializer = SubscriptionSerializer(authors, many=True,
+                                                context={
+                                                    'request': request,
+                                                    'limit': limit
+                                                })
+            return Response(serializer.data, status=HTTP_200_OK)
 
 
 class ViewSet(ReadOnlyModelViewSet):
@@ -161,6 +162,7 @@ class RecipesViewSet(ModelViewSet):
             return self.create_shopping_cart(request, pk)
         return self.delete_shopping_cart(request, pk)
 
+    @transaction.atomic
     def create_shopping_cart(self, request, recipe_id):
         existing_cart = ShoppingCart.objects.filter(
             recipe_id=recipe_id,
@@ -180,11 +182,10 @@ class RecipesViewSet(ModelViewSet):
             'user': request.user.id
         }
         serializer = ShoppingCartSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            recipe_data = RecipeCompactSerializer(recipe).data
-            return Response(recipe_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        recipe_data = RecipeCompactSerializer(recipe).data
+        return Response(recipe_data, status=status.HTTP_201_CREATED)
 
     def delete_shopping_cart(self, request, recipe_id):
         recipe = Recipe.objects.filter(id=recipe_id).first()
@@ -217,6 +218,7 @@ class RecipesViewSet(ModelViewSet):
             return self.create_favorite(request, pk)
         return self.delete_favorite(request, pk)
 
+    @transaction.atomic
     def create_favorite(self, request, recipe_id=None):
         existing_cart = Favorite.objects.filter(
             recipe_id=recipe_id,

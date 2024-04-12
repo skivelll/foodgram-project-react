@@ -19,9 +19,7 @@ class IsAdmin(BasePermission):
 class IsAuthor(BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_authenticated:
-            return obj.user == request.user
-        return None
+        return request.user.is_authenticated and obj.user == request.user
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -39,9 +37,8 @@ class IsAdminOrReadOnly(BasePermission):
 class IsAuthorOrAdmin(BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_authenticated:
-            return obj.author == request.user or request.user.is_staff
-        return None
+        return ((obj.author == request.user or request.user.is_staff)
+                and request.user.is_authenticated)
 
 
 class IsAuthorOrAdminOrReadOnly(BasePermission):
@@ -53,9 +50,8 @@ class IsAuthorOrAdminOrReadOnly(BasePermission):
     message = 'Изменять чужие данные нельзя!'
 
     def has_permission(self, request, view):
-        if (request.method in SAFE_METHODS) or request.user.is_authenticated:
-            return True
-        return None
+        return ((request.method in SAFE_METHODS)
+                or request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
