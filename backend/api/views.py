@@ -145,6 +145,8 @@ class RecipesViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
+    ordering_fields = ['id']
+    ordering = ['-id']
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
