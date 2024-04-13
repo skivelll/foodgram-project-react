@@ -12,8 +12,6 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Subscribers, User
 
-#   Сериализаторы отвечающие за работу с пользователями.
-
 
 class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
@@ -40,7 +38,9 @@ class CustomUserSerializer(UserSerializer):
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    username = serializers.CharField(max_length=150)
+    username = serializers.CharField(
+        max_length=150
+    )
     email = serializers.EmailField()
 
     class Meta(UserCreateSerializer.Meta):
@@ -56,8 +56,25 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     def validate_username(self, value):
         if not re.match(r'^[\w.@+-]+\Z', value):
-            raise serializers.ValidationError('Bad Request | field "username"')
+            raise ValidationError('Bad Request | field "username"')
         return value
+
+    def validate_email(self, value):
+        if not re.match(r'^[\w.@+-]+\Z', value):
+            raise ValidationError('Bad Request | field "email"')
+        return value
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        email = attrs.get('email')
+
+        validate_username = self.validate_username(username)
+        validate_email = self.validate_email(email)
+
+        attrs['username'] = validate_username
+        attrs['email'] = validate_email
+
+        return attrs
 
 ###########################################################
 
@@ -234,19 +251,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'cooking_time'
         ]
 
-    def validate(self, attrs):
-        if not bool(attrs.get('tags', None)):
+    def validate_tags(self, tags):
+        if not bool(tags):
             raise ValidationError('Поле теги обязательно для заполнения')
-        tags = attrs.get('tags')
         if len(tags) != len(set(tags)):
             raise ValidationError('Теги не должны повторяться')
-        if not bool(attrs.get('ingredients', None)):
+        return tags
+
+    def validate_ingredients(self, ingredients):
+        if not bool(ingredients):
             raise ValidationError(
-                'Поле ингредиенты обязательно для заполнения'
-            )
-        ingredients_data = attrs['ingredients']
+                'Поле ингредиенты обязательно для заполнения')
         id_set = set()
-        for ingredient_data in ingredients_data:
+        for ingredient_data in ingredients:
             id = ingredient_data['id']
             amount = ingredient_data['amount']
             if id in id_set:
@@ -256,10 +273,37 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             except Ingredient.DoesNotExist:
                 raise ValidationError(f'Ингредиент с id {id} не найден.')
             id_set.add(id)
-        if amount < 1:
-            raise ValidationError('Количество должно быть больше единицы')
+            if amount < 1:
+                raise ValidationError('Количество должно быть больше единицы')
+        return ingredients
+
+    def validate(self, attrs):
+        tags = attrs.get('tags')
+        ingredients = attrs.get('ingredients')
+
+        validated_tags = self.validate_tags(tags)
+        validated_ingredients = self.validate_ingredients(ingredients)
+
+        attrs['tags'] = validated_tags
+        attrs['ingredients'] = validated_ingredients
 
         return attrs
+
+    def link_ingredients_and_tags(self, recipe, tags, ingredients):
+
+        recipe.tags.set(tags)
+        RecipeIngredient.objects.filter(recipe=recipe).delete()
+
+        for ingredient_data in ingredients:
+            ingredient_id = ingredient_data['id']
+            amount = ingredient_data.get('amount')
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient_id=ingredient_id,
+                amount=amount
+            )
+
+        return recipe
 
     @transaction.atomic
     def create(self, validated_data):
@@ -267,18 +311,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
 
         recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
-
-        for ingredient_data in ingredients_data:
-            ingredient_id = ingredient_data['id']
-            ingredient = Ingredient.objects.get(id=ingredient_id)
-            amount = ingredient_data.get('amount')
-
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=amount
-            )
+        recipe = self.link_ingredients_and_tags(
+            recipe,
+            tags,
+            ingredients_data
+        )
 
         return recipe
 
@@ -290,23 +327,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        if tags is not None:
-            instance.tags.set(tags)
-
-        if ingredients_data is not None:
-            RecipeIngredient.objects.filter(recipe=instance).delete()
-
-            for ingredient_data in ingredients_data:
-                ingredient_id = ingredient_data['id']
-                amount = ingredient_data.get('amount')
-                RecipeIngredient.objects.create(
-                    recipe=instance,
-                    ingredient_id=ingredient_id,
-                    amount=amount
-                )
+        if (tags is not None) and (ingredients_data is not None):
+            instance = self.link_ingredients_and_tags(
+                instance,
+                tags,
+                ingredients_data
+            )
 
         instance.save()
-
         return instance
 
     def to_representation(self, instance):
