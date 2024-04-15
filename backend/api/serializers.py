@@ -4,6 +4,7 @@ import re
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
+from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
@@ -188,9 +189,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(default=serializers.CurrentUserDefault())
     cooking_time = serializers.IntegerField(validators=[MinValueValidator(1)])
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = RecipeGetIngredientSerializer(
-        many=True,
-        source='recipe_in_ingredient'
+    ingredients = serializers.SerializerMethodField(
+        method_name='get_ingredients'
     )
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -220,6 +220,15 @@ class RecipeSerializer(serializers.ModelSerializer):
             user = request.user
             return model.objects.filter(user=user, recipe=obj).exists()
         return False
+
+    def get_ingredients(self, obj):
+        ingredients = obj.ingredients.values(
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('ingredient_in_recipe__amount')
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         return self.check_user_item(obj, Favorite)
