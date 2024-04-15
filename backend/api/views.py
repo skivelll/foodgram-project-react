@@ -2,7 +2,7 @@ import tempfile
 
 from django.db import transaction
 from django.http import HttpResponse
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, OrderingFilter
 from djoser.views import UserViewSet
 from fpdf import FPDF
 from rest_framework import status
@@ -143,7 +143,7 @@ class RecipesViewSet(ModelViewSet):
     permission_classes = [IsAuthorOrAdminOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
     pagination_class = CustomPagination
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = RecipeFilter
     ordering_fields = ['id']
     ordering = ['-id']
