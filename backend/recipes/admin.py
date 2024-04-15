@@ -24,7 +24,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'added_in_favorites',
     )
     search_fields = (
-        'author',
+        'author__username',
         'name',
     )
     list_filter = (
@@ -45,8 +45,8 @@ class IngredientAdmin(admin.ModelAdmin):
     """Отображение модели Ingredient в админ панели сайта."""
 
     list_display = ('name', 'measurement_unit')
-    search_fields = ('name',)
-    list_filter = ('measurement_unit', 'name')
+    search_fields = ('name', 'measurement_unit')
+    list_filter = ('measurement_unit', )
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -67,10 +67,14 @@ class TagAdmin(admin.ModelAdmin):
 
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_filter = ('recipe', )
+    search_fields = ('user__username', 'recipe__name')
 
 
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_filter = ('recipe', )
+    search_fields = ('user__username', 'recipe__name')
 
 
 admin.site.register(Favorite, FavoriteAdmin)

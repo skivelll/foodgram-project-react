@@ -7,13 +7,12 @@ class UserAdmin(admin.ModelAdmin):
     """Отображение модели User в админ части сайта."""
 
     list_display = (
+        'email',
+        'first_name',
         'username',
-        'is_superuser',
         'is_staff'
     )
-    list_editable = (
-        'is_staff',
-    )
+
     search_fields = ('username', 'email',)
     list_filter = ('is_superuser', 'is_staff', 'email', 'username',)
 
@@ -21,6 +20,7 @@ class UserAdmin(admin.ModelAdmin):
 class SubscribersAdmin(admin.ModelAdmin):
 
     list_display = ('user', 'author')
+    search_fields = ('user', 'author')
 
 
 admin.site.register(Subscribers, SubscribersAdmin)

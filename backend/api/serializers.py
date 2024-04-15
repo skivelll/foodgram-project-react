@@ -290,18 +290,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def link_ingredients_and_tags(self, recipe, tags, ingredients):
-
         recipe.tags.set(tags)
-        RecipeIngredient.objects.filter(recipe=recipe).delete()
-
-        for ingredient_data in ingredients:
-            ingredient_id = ingredient_data['id']
-            amount = ingredient_data.get('amount')
-            RecipeIngredient.objects.create(
+        RecipeIngredient.objects.bulk_create(
+            [RecipeIngredient(
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
                 recipe=recipe,
-                ingredient_id=ingredient_id,
-                amount=amount
-            )
+                amount=ingredient['amount']
+            ) for ingredient in ingredients]
+        )
 
         return recipe
 
@@ -323,17 +319,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
         ingredients_data = validated_data.pop('ingredients', None)
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        if (tags is not None) and (ingredients_data is not None):
-            instance = self.link_ingredients_and_tags(
-                instance,
-                tags,
-                ingredients_data
-            )
-
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.ingredients.clear()
+        instance = self.link_ingredients_and_tags(
+            instance,
+            tags,
+            ingredients_data
+        )
         instance.save()
         return instance
 
