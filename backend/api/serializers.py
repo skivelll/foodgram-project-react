@@ -222,13 +222,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         return False
 
     def get_ingredients(self, obj):
-        ingredients = obj.ingredients.values(
+        return obj.ingredients.values(
             'id',
             'name',
             'measurement_unit',
             amount=F('ingredient_in_recipe__amount')
         )
-        return ingredients
 
     def get_is_favorited(self, obj):
         return self.check_user_item(obj, Favorite)
