@@ -279,7 +279,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         id_set = set()
         for ingredient_data in ingredients:
             id = ingredient_data['id']
-            amount = ingredient_data['amount']
             if id in id_set:
                 raise ValidationError('Ингредиенты не должны повторяться')
             try:
