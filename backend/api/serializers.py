@@ -282,7 +282,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise ValidationError(f'Ингредиент с id {id} не найден.')
             id_set.add(id)
             if amount < 1:
-                raise ValidationError('Количество должно быть больше единицы')
+                raise ValidationError({
+                    'amount': 'Количество должно быть больше единицы'
+                })
         return ingredients
 
     def validate(self, attrs):
