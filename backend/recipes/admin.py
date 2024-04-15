@@ -33,6 +33,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'tags',
     )
     readonly_fields = ('added_in_favorites',)
+    ordering = ['-id']
 
     inlines = [RecipeIngredientInline, RecipeTagInline]
 
