@@ -282,6 +282,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             id = ingredient_data['id']
             if id in id_set:
                 raise ValidationError('Ингредиенты не должны повторяться')
+            id_set.add(id)
             try:
                 Ingredient.objects.get(id=id)
             except Ingredient.DoesNotExist:
