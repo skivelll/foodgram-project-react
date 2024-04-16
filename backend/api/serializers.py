@@ -276,7 +276,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         if not bool(ingredients):
             raise ValidationError(
-              'Поле ингредиенты обязательно для заполнения'
+                'Поле ингредиенты обязательно для заполнения'
             )
         ingredient_set = {ingredient[id] for ingredient in ingredients}
         if len(ingredients) != len(ingredient_set):
