@@ -157,6 +157,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 'Количество ингредиента должно превышать 1.'
             )
+        return value
 
 
 class RecipeGetIngredientSerializer(serializers.ModelSerializer):
