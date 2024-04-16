@@ -277,16 +277,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if not bool(ingredients):
             raise ValidationError(
                 'Поле ингредиенты обязательно для заполнения')
-        id_set = set()
-        for ingredient_data in ingredients:
-            id = ingredient_data['id']
-            if id in id_set:
-                raise ValidationError('Ингредиенты не должны повторяться')
-            id_set.add(id)
-            try:
-                Ingredient.objects.get(id=id)
-            except Ingredient.DoesNotExist:
-                raise ValidationError(f'Ингредиент с id {id} не найден.')
+        ingredient_set = {ingredient[id] for ingredient in ingredients}
+        if len(ingredient) != len(ingredient_set):
+            raise ValidationError(f'Ингредиенты не должны повторяться.')
+        try:
+            Ingredient.objects.get(id=id)
+        except Ingredient.DoesNotExist:
+            raise ValidationError(f'Ингредиент с id {id} не найден.')
         return ingredients
 
     def validate(self, attrs):
