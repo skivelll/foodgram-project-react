@@ -13,14 +13,14 @@ class UserAdmin(admin.ModelAdmin):
         'is_staff'
     )
 
-    search_fields = ('username', 'email',)
+    search_fields = ('username', 'email', 'first_name')
     list_filter = ('is_superuser', 'is_staff', 'email', 'username',)
 
 
 class SubscribersAdmin(admin.ModelAdmin):
 
     list_display = ('user', 'author')
-    search_fields = ('user', 'author')
+    search_fields = ('user__username', 'author__username')
 
 
 admin.site.register(Subscribers, SubscribersAdmin)
