@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
         'username',
         'is_staff'
     )
-
+    exclude = ['password']
     search_fields = ('username', 'email', 'first_name')
     list_filter = ('is_superuser', 'is_staff', 'email', 'username',)
 
